@@ -1,0 +1,45 @@
+{
+  "timestamp": "2025-11-09T05:44:45.819764Z",
+  "input": "/Users/nanjo/Desktop/projects/Semisup/data/labeled.jsonl",
+  "total_read": 14544,
+  "kept_cleaned": 13492,
+  "dropped": 1052,
+  "drop_reasons": {
+    "length_filter": 893,
+    "duplicate_claim": 159
+  },
+  "label_distribution_all": {
+    "SUPPORTS": 7320,
+    "REFUTES": 2841,
+    "NOT ENOUGH INFO": 3331
+  },
+  "label_distribution_train": {
+    "SUPPORTS": 6588,
+    "REFUTES": 2557,
+    "NOT ENOUGH INFO": 2998
+  },
+  "label_distribution_val": {
+    "SUPPORTS": 732,
+    "REFUTES": 284,
+    "NOT ENOUGH INFO": 333
+  },
+  "train_size": 12143,
+  "val_size": 1349,
+  "logic_pairs_generated": 41573,
+  "class_weights_suggestion": {
+    "SUPPORTS": 0.5195775287035947,
+    "REFUTES": 1.3386690493153237,
+    "NOT ENOUGH INFO": 1.1417534219810814
+  },
+  "class_counts_train": {
+    "SUPPORTS": 6588,
+    "REFUTES": 2557,
+    "NOT ENOUGH INFO": 2998
+  },
+  "settings": {
+    "seed": 42,
+    "val_ratio": 0.1,
+    "min_len": 5,
+    "max_len": 128
+  }
+}
