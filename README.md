@@ -56,12 +56,7 @@ Random (or stratified) split to create **supervised** and **unsupervised** pools
 **Run:**
 ```bash
 cd SemiSup
-python dataprocess.py \
-  --input data/raw/train.jsonl \
-  --labeled_out data/labeled.jsonl \
-  --unlabeled_out data/unlabeled.jsonl \
-  --labeled_ratio 0.10 \
-  --seed 42
+python dataprocess.py
 ```
 
 **Outputs:**
