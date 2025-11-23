@@ -126,5 +126,140 @@ python score_logic_with_nli.py \
 - `--fp16` significantly reduces VRAM and boosts throughput on T4.
 
 ---
+# Textual Feature Extractor (Teacher Model)
+Semi-Supervised Fake News Detection — Feature Extraction Module
+
+This directory contains the implementation of the **Textual Feature Extractor**, which serves as the *Teacher Model* in the semi-supervised misinformation detection framework. It performs supervised pretraining on labeled FEVER claims and generates pseudo-labels and linguistic/logic-aware features for downstream modules such as the RL Selector and Fake News Detector.
+
+## Overview
+
+The extractor is based on **DeBERTa‑v3‑base** and includes:
+- **Supervised pretraining** on labeled claims (3-way FEVER labels: SUPPORTS / REFUTES / NOT ENOUGH INFO)
+- **Pseudo-label generation** for unlabeled claim texts
+- **Semantic confidence features** (p_max, entropy)
+- **LogicScore integration** from an external NLI/logic module
+- **Linguistic/discourse features** (modality, negation, causal cues, sentiment-like indicators)
+- **Fused score S = 0.6 × semantic + 0.3 × logic + 0.1 × linguistic**
+
+This module outputs feature-enriched pseudo-labels used to construct the weakly labeled dataset for semi-supervised training.
+
+---
+
+## Directory Structure
+
+```
+textual_feature_extractor.py   # Main script (training, pseudo-labeling, plotting)
+data/processed/
+    claim_only_train.jsonl     # Labeled training claims
+    claim_only_val.jsonl       # Labeled validation claims
+    logic_scores_by_id.jsonl   # Precomputed logic features
+data/unlabeled.jsonl           # Unlabeled claim dataset
+models/extractor/              # Saved teacher model (after pretraining)
+```
+
+---
+
+## Key Components
+
+### 1. Supervised Pretraining
+The model fine-tunes DeBERTa-v3-base using:
+- Cross-entropy loss
+- Layer-wise learning rate decay (LLRD)
+- Weight decay regularization
+- Optional gradient checkpointing (for memory saving)
+- Early stopping (based on val macro-F1)
+- Automatic batch-size tuning (optional)
+
+Example command:
+
+```bash
+python textual_feature_extractor.py
+--mode pretrain
+--train data/processed/claim_only_train.jsonl
+--val   data/processed/claim_only_val.jsonl
+--model_name microsoft/deberta-v3-base
+--extractor_dir models/extractor
+--epochs 5
+--auto_batch_tune
+--gradient_checkpointing
+--patience 2
+```
+
+---
+
+### 2. Pseudo-Label Generation
+For unlabeled data, the extractor outputs:
+- predicted label
+- probability distribution for 3 classes
+- entropy-based uncertainty
+- LogicScore features (NegScore, ParaScore, ModScore, LogicScore)
+- Linguistic feature score (LingScore)
+- Fused confidence score
+
+Example:
+
+```bash
+python textual_feature_extractor.py
+--mode generate_pseudo
+--extractor_dir models/extractor
+--unlabeled data/unlabeled.jsonl
+--logic_scores data/processed/logic_scores_by_id.jsonl
+--pseudo_out data/processed/pseudo_with_features.jsonl
+--auto_batch_tune
+```
+
+Output example:
+
+```json
+{
+  "id": "123",
+  "claim": "The flu vaccine can cause the flu.",
+  "pseudo_label": "REFUTES",
+  "p_supports": 0.02,
+  "p_refutes": 0.91,
+  "p_nei": 0.07,
+  "p_max": 0.91,
+  "entropy": 0.21,
+  "LogicScore": -0.41,
+  "LingScore": 0.32,
+  "fused_score": 0.67
+}
+```
+
+---
+
+## Training Visualization
+You can generate loss and metric curves from saved history:
+
+```bash
+python textual_feature_extractor.py
+--mode plot_history
+--extractor_dir models/extractor
+--plot_out extractor_training.png
+```
+
+This produces:
+- `extractor_training_loss.png`
+- `extractor_training_metrics.png`
+
+---
+
+## Output Files
+
+| File | Description |
+|------|-------------|
+| `models/extractor/` | Trained DeBERTa teacher model |
+| `pseudo_with_features.jsonl` | Pseudo-labels + semantic/logic/linguistic features |
+| `unlabeled_embeddings.pt` | Optional CLS embeddings |
+| `training_history.jsonl` | Per-epoch training metrics |
+
+---
+
+
+## Notes
+- This module is **strictly aligned** with your research plan design.
+- Loss function and feature computation follow your architecture exactly.
+- The extractor is shared by the Fake News Detector and RL Selector through its pretrained encoder.
+
 
 
