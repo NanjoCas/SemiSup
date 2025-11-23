@@ -5,7 +5,7 @@ LABELED_OUT = "labeled.jsonl"
 UNLABELED_OUT = "unlabeled.jsonl"
 
 # ---------------------------
-# 配置：有标签比例
+# 配置：有标签比例（可改）
 LABELED_RATIO = 0.10   # 10%
 # ---------------------------
 
@@ -42,6 +42,6 @@ with open(UNLABELED_OUT, "w", encoding="utf-8") as f:
     for item in unlabeled:
         f.write(json.dumps(item, ensure_ascii=False) + "\n")
 
-print("Done! Files written:")
+print("✅ Done! Files written:")
 print(" -", LABELED_OUT)
 print(" -", UNLABELED_OUT)
